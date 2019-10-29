@@ -1,0 +1,4 @@
+pessoa:
+    #username: username-foo
+    oracle:
+       password: senha-foo-yaml
