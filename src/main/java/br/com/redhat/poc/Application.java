@@ -2,6 +2,7 @@ package br.com.redhat.poc;
 
 import org.infinispan.client.hotrod.RemoteCacheManager;
 import org.infinispan.client.hotrod.configuration.ConfigurationBuilder;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -20,8 +21,23 @@ import org.springframework.context.annotation.PropertySource;
 @PropertySource("classpath:application.properties")
 public class Application {
 
-    
+	/*
+	 * get the member list of cluster from application.properties
+	 * 
+	 * Obtem a lista de membros do cluster do arquivo application.properties.
+	 */
+ 	@Value("${infinispan.client.hotrod.server_list}")
+ 	private  String rhdgHosts;
 	
+ 	@Value("${infinispan.client.hotrod.socket_timeout}")
+ 	private  Integer socketTimeout;
+ 	
+ 	@Value("${infinispan.client.hotrod.connect_timeout}")
+ 	private  Integer connecionTimeout;
+ 	
+ 	@Value("${infinispan.client.hotrod.max_retries}")
+ 	private  Integer maxRetries;
+ 	
 	 @Bean
 	 /*
 	  * English version:
@@ -37,14 +53,7 @@ public class Application {
 	  */
 	 public RemoteCacheManager cacheContainer() {
    		  
-		 	/* NOTE:
-		 	* All values can be inserted in applicantion.properties or in a specific .properties file to hotrod like hotrod-client.properties
-		 	* 
-		 	* 
-		 	* Todos esses valores podem ser incluidos no arquivo applicaiton.properties ou em um arquivo separado como por exemplo hotrod-client.properties
-		 	* 
-		 	*/ 
-		 
+				 
 		    ConfigurationBuilder builder =  new ConfigurationBuilder();
                         
             /*
@@ -52,19 +61,19 @@ public class Application {
              *Lista de nodes que formam o cluster            
              * 
              */
-            builder.addServers("10.0.0.3:11222;10.0.0.4:11222;10.0.0.5:11222;10.0.0.6:11222;10.0.0.7:11222");
+            builder.addServers(rhdgHosts);
            
             /*
              * This property defines the maximum socket read timeout in milliseconds before giving up waiting for bytes from the server.
              * Essa propriedade define em milesegundos o timeout do socket  de leitura.
              */
-            builder.socketTimeout(5000);
+            builder.socketTimeout(socketTimeout);
             
             /*
              * This property defines the maximum socket connect timeout before giving up connecting to the server.
              * Propriedade que define o tempo maximo de conexão no socket.
              */
-            builder.connectionTimeout(5000);
+            builder.connectionTimeout(connecionTimeout);
             
             /*
              * It sets the maximum number of retries for each request. A valid value should be greater or equals than 0 (zero). 
@@ -73,7 +82,7 @@ public class Application {
              * Define a quantidadede retentativas para cada request feita. Os valores devem ser superior a 0, onde 0 significa sem tentativas. O valor default é 10.
 			 *
              */
-            builder.maxRetries(5000);
+            builder.maxRetries(maxRetries);
         
             builder.connectionPool().minIdle(10);
             builder.connectionPool().maxIdle(50);
