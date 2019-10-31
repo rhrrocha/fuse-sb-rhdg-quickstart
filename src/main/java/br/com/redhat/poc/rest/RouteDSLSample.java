@@ -44,8 +44,7 @@ public class RouteDSLSample extends RouteBuilder {
 			.routeId("put-key-route")
 		    .setHeader(InfinispanConstants.OPERATION, constant(InfinispanConstants.PUT))
 		    .process(new SaveKeyProcessor())
-		    .to("infinispan://foo??cacheContainer=#cacheContainer&cacheName=cache1")
-		    .process(new SaveKeyProcessor());
+		    .to("infinispan://foo??cacheContainer=#cacheContainer&cacheName=cache1");
 	
 	}
 
