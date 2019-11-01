@@ -53,7 +53,7 @@ public class RouteDSLSample extends RouteBuilder {
 				
 		/*
 		 * This route verify the number of nodes actives in a cluster every 5 seconds.
-		 * Esta rota verifica a cada 5 minuto a quantidade de nós ativos no cluster.
+		 * Esta rota verifica a cada 5 segundos a quantidade de nós ativos no cluster.
 		 * 
 		 * @see custom.rhdg.health.check.host in application.properties
 		 * 
