@@ -1,6 +1,5 @@
-package br.com.test;
+package br.com.redhat.poc.test;
 
-import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.test.spring.CamelSpringTestSupport;
 import org.junit.Test;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
@@ -10,8 +9,12 @@ import org.springframework.context.support.AbstractApplicationContext;
 import br.com.redhat.poc.Application;
 import br.com.redhat.poc.dto.KeyDTO;
 
+/**
+ * Simple JUnit test
+ * @author rosantos
+ *
+ */
 @PropertySource("classpath:application.properties")
-
 public class RouteSaveKeyTest extends CamelSpringTestSupport {
 
 	protected AbstractApplicationContext createApplicationContext() {
@@ -20,13 +23,11 @@ public class RouteSaveKeyTest extends CamelSpringTestSupport {
 		return ctx;
 	}
 
-	
-	@Override
-	  public boolean isUseAdviceWith() {
-	    return true;
-	  }
-	
-    //@Override 
+	/*
+	 * inform to Junit to ignore and not to execute  endpoint ever this one  starts with "infinispan://" ao JUnit
+	 * 
+	 */
+    @Override 
     public String isMockEndpointsAndSkip() { 
             return "infinispan://*"; 
     } 
@@ -39,16 +40,7 @@ public class RouteSaveKeyTest extends CamelSpringTestSupport {
 		keyDto.setValue("Teste - valo chave 1");
 				
 		template.sendBodyAndHeader("direct:saveKey", keyDto, "id", "1");
-		System.out.println("exchange");
-		
+			
 	}
-
-	@Override
-	protected RouteBuilder createRouteBuilder() {
-		return new RouteBuilder() {
-			public void configure() {
-				from("direct:saveKey").autoStartup(true).log("$body");
-			}
-		};
-	}
+	
 }

@@ -1,5 +1,6 @@
-package br.com.test;
+package br.com.redhat.poc.test;
 
+import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.test.spring.CamelSpringTestSupport;
 import org.junit.Test;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
@@ -20,7 +21,6 @@ public class RouteGetKeyTest extends CamelSpringTestSupport {
 	}
 
 	// @Override
-
 	public String isMockEndpointsAndSkip() {
 		return "infinispan://*";
 	}
@@ -31,31 +31,11 @@ public class RouteGetKeyTest extends CamelSpringTestSupport {
 	}
 
 	@Test
+	
 	public void call() throws Exception {
-
 
 		template.sendBodyAndHeader("direct:getKey", "", "id", "1");
 
 	}
-	/*
-	@Override
-	protected RouteBuilder createRouteBuilder() {
-		return new RouteDSLSample(); //Real implementation. To try not recreate routes here.
-	}*/
 	
-	/*
-	 * @Before public void mockEndpoints() throws Exception { AdviceWithRouteBuilder
-	 * mockSolr = new AdviceWithRouteBuilder() {
-	 * 
-	 * @Override public void configure() throws Exception {
-	 * 
-	 * 
-	 * interceptSendToEndpoint("direct:getKey") .skipSendToOriginalEndpoint()
-	 * .to("mock:direct:getKey");
-	 * 
-	 * 
-	 * } }; context.getRouteDefinition("routeExemple").adviceWith(context,
-	 * mockSolr); }
-	 */
-
 }
