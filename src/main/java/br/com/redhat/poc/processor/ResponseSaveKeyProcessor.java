@@ -5,15 +5,14 @@ import org.apache.camel.Processor;
 import org.springframework.stereotype.Component;
 
 @Component
-public class RetrieveKeyProcessor implements Processor{
-
+public class ResponseSaveKeyProcessor implements Processor {
+	
 	@Override
 	public void process(Exchange exchange) throws Exception {
-
-	//	String keyValue = exchange.getIn().getHeader("CamelInfinispanOperationResult").toString();
+				
 	
-	//	exchange.getIn().setBody(keyValue);
-		
+		exchange.getIn().setBody("OK-FEITO");
+				
 	}
 
 }

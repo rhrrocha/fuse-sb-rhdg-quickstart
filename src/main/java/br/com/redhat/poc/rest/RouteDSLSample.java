@@ -3,6 +3,7 @@ package br.com.redhat.poc.rest;
 import org.apache.camel.Exchange;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.infinispan.InfinispanConstants;
+import org.apache.camel.component.infinispan.InfinispanOperation;
 import org.apache.camel.model.dataformat.JsonLibrary;
 import org.apache.camel.model.rest.RestBindingMode;
 import org.springframework.http.HttpMethod;
@@ -10,6 +11,7 @@ import org.springframework.stereotype.Component;
 
 import br.com.redhat.poc.dto.KeyDTO;
 import br.com.redhat.poc.model.CacheHealthModel;
+import br.com.redhat.poc.processor.ResponseSaveKeyProcessor;
 import br.com.redhat.poc.processor.RetrieveKeyProcessor;
 import br.com.redhat.poc.processor.SaveKeyProcessor;
 
@@ -23,17 +25,30 @@ public class RouteDSLSample extends RouteBuilder {
 			
 		restConfiguration("spark-rest").port(8083).bindingMode(RestBindingMode.json);
 
-		rest("/cache").consumes("application/json").produces("application/json")
-		.get("/retrieveKey/{id}")
-			.to("direct:getKey")		  					
+		rest("/cache").consumes("application/json")
+			  					
 		.post("/newKey")
 			.type(KeyDTO.class)
-			.to("direct:saveKey");
-					
+			.to("direct:saveKey")
+		.get("/retrieveKey/{id}")
+			.to("direct:getKey");	
+		
 		//Consumers to services
+		
+		/*
+		 * NOTES about components:
+		 * 
+		 * In the component camel-jbossdatagrid the caceName is passed by uri parameters (cacheContainer=#cacheContainer&cacheName=<cane name>),
+		 * however, in the component camel-infinispan the cache name is passed by path parameter (infinispan:<cache name>?cacheContainer=#cacheContainer")
+		 * 
+		 * The value InfinispanConstants.PUT e InfinispanConstants.GET are deprecated in camel-infinispan. Use InfinispanOperation.PUT and InfinispanOperation.GET 
+		 * 
+		 */
+		
+		
 		from("direct:getKey")
 			.routeId("get-key-route")
-			.setHeader(InfinispanConstants.OPERATION, constant(InfinispanConstants.GET))	
+			.setHeader(InfinispanConstants.OPERATION, constant(InfinispanOperation.GET))	
 		
 			.setHeader(InfinispanConstants.KEY , simple("${in.header.id}"))
 			/*
@@ -41,15 +56,16 @@ public class RouteDSLSample extends RouteBuilder {
 			 * 
 			 * O nome do cache está definido na chave key custom.rhdg.cache.name no arquivo application.properties
 			 */
-			.to("infinispan://foo??cacheContainer=#cacheContainer&cacheName={{custom.rhdg.cache.name}}") 
+			.to("infinispan:{{custom.rhdg.cache.name}}?cacheContainer=#cacheContainer") 
 			.process(new RetrieveKeyProcessor());
 			
+		
 		from("direct:saveKey")
 			.routeId("put-key-route")
-		    .setHeader(InfinispanConstants.OPERATION, constant(InfinispanConstants.PUT))
+			.setHeader(InfinispanConstants.OPERATION, constant(InfinispanOperation.PUT))
 		    .process(new SaveKeyProcessor())
-		    .to("infinispan://foo??cacheContainer=#cacheContainer&cacheName=cache1");
-		
+		    .to("infinispan:{{custom.rhdg.cache.name}}?cacheContainer=#cacheContainer")		
+			.process(new ResponseSaveKeyProcessor());
 				
 		/*
 		 * This route verify the number of nodes actives in a cluster every 5 seconds.
@@ -59,7 +75,7 @@ public class RouteDSLSample extends RouteBuilder {
 		 * 
 		 * NOTE: this url is expected a basic authentication
 		 */
-		from("timer://foo?fixedRate=true&period=5000")
+		from("timer://foo?fixedRate=true&period=5000").autoStartup(false)
 			.routeId("health-check-route")
             .setHeader(Exchange.HTTP_METHOD).constant(HttpMethod.GET)
             .setHeader(Exchange.CONTENT_TYPE).constant("application/json")
