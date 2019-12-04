@@ -1,23 +1,25 @@
-package br.com.redhat.poc.rest;
+package br.com.redhat.poc.route;
 
 import org.apache.camel.Exchange;
+import org.apache.camel.Processor;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.infinispan.InfinispanConstants;
 import org.apache.camel.component.infinispan.InfinispanOperation;
 import org.apache.camel.model.dataformat.JsonLibrary;
 import org.apache.camel.model.rest.RestBindingMode;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Component;
 
 import br.com.redhat.poc.dto.KeyDTO;
 import br.com.redhat.poc.model.CacheHealthModel;
 import br.com.redhat.poc.processor.ResponseSaveKeyProcessor;
-import br.com.redhat.poc.processor.RetrieveKeyProcessor;
-import br.com.redhat.poc.processor.SaveKeyProcessor;
 
 @Component
 public class RouteDSLSample extends RouteBuilder {
 
+	private static Logger LOGGER = LoggerFactory.getLogger(RouteDSLSample.class);
 	
 	@Override
 	public void configure() throws Exception {
@@ -57,13 +59,29 @@ public class RouteDSLSample extends RouteBuilder {
 			 * O nome do cache está definido na chave key custom.rhdg.cache.name no arquivo application.properties
 			 */
 			.to("infinispan:{{custom.rhdg.cache.name}}?cacheContainer=#cacheContainer") 
-			.process(new RetrieveKeyProcessor());
-			
+		     .process(new Processor() {
+					
+					@Override
+					public void process(Exchange exchange) throws Exception {
+				
+						LOGGER.info("Value of Key " + exchange.getIn().getHeader(InfinispanConstants.KEY) + " is " + exchange.getIn().getBody(String.class));
+						
+					}
+		 	});
 		
 		from("direct:saveKey")
 			.routeId("put-key-route")
 			.setHeader(InfinispanConstants.OPERATION, constant(InfinispanOperation.PUT))
-		    .process(new SaveKeyProcessor())
+		    .process(new Processor() {
+				
+				@Override
+				public void process(Exchange exchange) throws Exception {
+					KeyDTO chave = exchange.getIn().getBody(KeyDTO.class);					
+					exchange.getIn().setHeader(InfinispanConstants.KEY, chave.getKey());
+					exchange.getIn().setHeader(InfinispanConstants.VALUE, chave.getValue());					
+				}
+				
+			})
 		    .to("infinispan:{{custom.rhdg.cache.name}}?cacheContainer=#cacheContainer")		
 			.process(new ResponseSaveKeyProcessor());
 				
@@ -75,7 +93,7 @@ public class RouteDSLSample extends RouteBuilder {
 		 * 
 		 * NOTE: this url is expected a basic authentication
 		 */
-		from("timer://foo?fixedRate=true&period=5000").autoStartup(false)
+		from("timer://foo?fixedRate=true&period=5000").autoStartup(true)
 			.routeId("health-check-route")
             .setHeader(Exchange.HTTP_METHOD).constant(HttpMethod.GET)
             .setHeader(Exchange.CONTENT_TYPE).constant("application/json")
@@ -83,7 +101,7 @@ public class RouteDSLSample extends RouteBuilder {
             
             //NOTE: Basic authentication parameter cannot sent by Exchange.HTTP_QUERY in camel-http4 component. 
             //NOTA: Os parametros para basic authentication não podem ser passados via header no componente camel-http4.
-            .to("http4://{{custom.rhdg.health.check.host}}/management/subsystem/datagrid-infinispan/cache-container/cache-container-example/health/HEALTH??authMethod=Basic&authUsername=admin&authPassword=admin")
+            .to("http4://{{custom.rhdg.health.check.host}}/management/subsystem/datagrid-infinispan/cache-container/cc-example-one/health/HEALTH??authMethod=Basic&authUsername=admin&authPassword=admin")
             //Transform the JSON response in a java object.
             .unmarshal().json(JsonLibrary.Jackson, CacheHealthModel.class)  
             .log("Number of Nodes ON: ${in.body.numberOfNodes}");
