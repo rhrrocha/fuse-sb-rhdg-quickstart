@@ -1,5 +1,7 @@
 package br.com.redhat.poc.route;
 
+import java.util.concurrent.TimeUnit;
+
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
 import org.apache.camel.builder.RouteBuilder;
@@ -15,6 +17,7 @@ import org.springframework.stereotype.Component;
 import br.com.redhat.poc.dto.KeyDTO;
 import br.com.redhat.poc.model.CacheHealthModel;
 import br.com.redhat.poc.processor.ResponseSaveKeyProcessor;
+import ch.qos.logback.core.helpers.Transform;
 
 @Component
 public class RouteDSLSample extends RouteBuilder {
@@ -27,27 +30,20 @@ public class RouteDSLSample extends RouteBuilder {
 			
 		restConfiguration("spark-rest").port(8083).bindingMode(RestBindingMode.json);
 
-		rest("/cache").consumes("application/json")
+		rest("/fuse").consumes("application/json")
 			  					
-		.post("/newKey")
+		.post("/rhdg")
 			.type(KeyDTO.class)
 			.to("direct:saveKey")
-		.get("/retrieveKey/{id}")
-			.to("direct:getKey");	
+		.get("/rhdg/{id}")
+			.to("direct:getKey")
+		.delete("/rhdg/{id}")
+			.to("direct:deleteKey");
 		
 		//Consumers to services
 		
-		/*
-		 * NOTES about components:
-		 * 
-		 * In the component camel-jbossdatagrid the caceName is passed by uri parameters (cacheContainer=#cacheContainer&cacheName=<cane name>),
-		 * however, in the component camel-infinispan the cache name is passed by path parameter (infinispan:<cache name>?cacheContainer=#cacheContainer")
-		 * 
-		 * The value InfinispanConstants.PUT e InfinispanConstants.GET are deprecated in camel-infinispan. Use InfinispanOperation.PUT and InfinispanOperation.GET 
-		 * 
-		 */
-		
-		
+
+		// get a key
 		from("direct:getKey")
 			.routeId("get-key-route")
 			.setHeader(InfinispanConstants.OPERATION, constant(InfinispanOperation.GET))	
@@ -58,7 +54,7 @@ public class RouteDSLSample extends RouteBuilder {
 			 * 
 			 * O nome do cache está definido na chave key custom.rhdg.cache.name no arquivo application.properties
 			 */
-			.to("infinispan:{{custom.rhdg.cache.name}}?cacheContainer=#cacheContainer") 
+			.to("infinispan:{{custom.rhdg.cache.name}}?cacheContainer=#remoteCacheManagerExample") 
 		     .process(new Processor() {
 					
 					@Override
@@ -69,22 +65,34 @@ public class RouteDSLSample extends RouteBuilder {
 					}
 		 	});
 		
-		from("direct:saveKey")
-			.routeId("put-key-route")
-			.setHeader(InfinispanConstants.OPERATION, constant(InfinispanOperation.PUT))
-		    .process(new Processor() {
+		//Save a key
+		from("direct:saveKey").routeId("put-key-route")
+				.setHeader(InfinispanConstants.OPERATION, constant(InfinispanOperation.PUT))
+				.setHeader(InfinispanConstants.LIFESPAN_TIME, simple("10"))
+				.setHeader(InfinispanConstants.LIFESPAN_TIME_UNIT, simple(TimeUnit.SECONDS.toString()))
+				.process(new Processor() {
+
+					@Override
+					public void process(Exchange exchange) throws Exception {
+						KeyDTO chave = exchange.getIn().getBody(KeyDTO.class);
+						exchange.getIn().setHeader(InfinispanConstants.KEY, chave.getKey());
+						exchange.getIn().setHeader(InfinispanConstants.VALUE, chave.getValue());
+					}
+
+				}).to("infinispan:{{custom.rhdg.cache.name}}?cacheContainer=#remoteCacheManagerExample")
+				.process(new ResponseSaveKeyProcessor())
+				.transform().simple("saved");
 				
-				@Override
-				public void process(Exchange exchange) throws Exception {
-					KeyDTO chave = exchange.getIn().getBody(KeyDTO.class);					
-					exchange.getIn().setHeader(InfinispanConstants.KEY, chave.getKey());
-					exchange.getIn().setHeader(InfinispanConstants.VALUE, chave.getValue());					
-				}
+		//Remove a key
+		from("direct:deleteKey").routeId("delete-key-route")
+				.setHeader(InfinispanConstants.OPERATION, constant(InfinispanOperation.REMOVE))
+				.setHeader(InfinispanConstants.KEY , simple("${in.header.id}"))
+				.to("infinispan:{{custom.rhdg.cache.name}}?cacheContainer=#remoteCacheManagerExample");
 				
-			})
-		    .to("infinispan:{{custom.rhdg.cache.name}}?cacheContainer=#cacheContainer")		
-			.process(new ResponseSaveKeyProcessor());
 				
+		
+			
+		
 		/*
 		 * This route verify the number of nodes actives in a cluster every 5 seconds.
 		 * Esta rota verifica a cada 5 segundos a quantidade de nós ativos no cluster.
@@ -93,7 +101,7 @@ public class RouteDSLSample extends RouteBuilder {
 		 * 
 		 * NOTE: this url is expected a basic authentication
 		 */
-		from("timer://foo?fixedRate=true&period=5000").autoStartup(true)
+		from("timer://foo?fixedRate=true&period=5000").autoStartup(false)
 			.routeId("health-check-route")
             .setHeader(Exchange.HTTP_METHOD).constant(HttpMethod.GET)
             .setHeader(Exchange.CONTENT_TYPE).constant("application/json")

@@ -39,7 +39,7 @@ public class RemoteCacheConfig {
       * A abordagem recomendada é ter uma única instância do RemoteCacheManager para cada Java Virtual Machine (JVM).
       *
 	  */
-	 public RemoteCacheManager cacheContainer() {
+	 public RemoteCacheManager remoteCacheManagerExample() {
    		  
 				 
 		    ConfigurationBuilder builder =  new ConfigurationBuilder();

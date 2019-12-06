@@ -11,7 +11,7 @@ public class ResponseSaveKeyProcessor implements Processor {
 	public void process(Exchange exchange) throws Exception {
 				
 	
-		exchange.getIn().setBody("OK-FEITO");
+	
 				
 	}
 
