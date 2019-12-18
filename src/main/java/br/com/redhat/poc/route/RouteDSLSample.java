@@ -17,7 +17,6 @@ import org.springframework.stereotype.Component;
 import br.com.redhat.poc.dto.KeyDTO;
 import br.com.redhat.poc.model.CacheHealthModel;
 import br.com.redhat.poc.processor.ResponseSaveKeyProcessor;
-import ch.qos.logback.core.helpers.Transform;
 
 @Component
 public class RouteDSLSample extends RouteBuilder {
@@ -69,7 +68,9 @@ public class RouteDSLSample extends RouteBuilder {
 		from("direct:saveKey").routeId("put-key-route")
 				.setHeader(InfinispanConstants.OPERATION, constant(InfinispanOperation.PUT))
 				.setHeader(InfinispanConstants.LIFESPAN_TIME, simple("10"))
-				.setHeader(InfinispanConstants.LIFESPAN_TIME_UNIT, simple(TimeUnit.SECONDS.toString()))
+				.setHeader(InfinispanConstants.OPERATION, constant(InfinispanOperation.PUT))
+				.setHeader(InfinispanConstants.MAX_IDLE_TIME, simple("10"))
+				.setHeader(InfinispanConstants.MAX_IDLE_TIME_UNIT, simple(TimeUnit.SECONDS.toString()))
 				.process(new Processor() {
 
 					@Override
@@ -80,8 +81,7 @@ public class RouteDSLSample extends RouteBuilder {
 					}
 
 				}).to("infinispan:{{custom.rhdg.cache.name}}?cacheContainer=#remoteCacheManagerExample")
-				.process(new ResponseSaveKeyProcessor())
-				.transform().simple("saved");
+				.process(new ResponseSaveKeyProcessor());
 				
 		//Remove a key
 		from("direct:deleteKey").routeId("delete-key-route")
