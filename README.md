@@ -8,7 +8,7 @@ Before of run this project, ensure that an instance of RHDG is running with a ca
 ## Implementations
 ### 1 - PUT a key 
 
-To insert a key (put) in RHDG use the API [http://localhost:8083/cache/newKey](http://localhost:8083//cache/newKey)
+To insert a key (put) in RHDG use the API [http://localhost:8083/fuse/rhdg](http://localhost:8083/fuse/rhdg)
 This api should send a JSON below
 
     {
@@ -20,7 +20,7 @@ The expected result is a ***HTTP status 200*** and a new key inserted in **RHDG*
 
 ### 2 - GET a Key
 
-To get a Key use the API [http://localhost:8083/cache/retrieveKey/{key}](http://localhost:8083/cache/retrieveKey/{key})
+To get a Key use the API [(http://localhost:8083/fuse/rhdg/{key}](http://localhost:8083/fuse/rhdg/{key})
 
 ### 3 - Verify  number of actives nodes
 
