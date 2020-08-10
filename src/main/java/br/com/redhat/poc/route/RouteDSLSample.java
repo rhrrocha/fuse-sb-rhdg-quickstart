@@ -16,7 +16,6 @@ import org.springframework.stereotype.Component;
 
 import br.com.redhat.poc.dto.KeyDTO;
 import br.com.redhat.poc.model.CacheHealthModel;
-import br.com.redhat.poc.processor.ResponseSaveKeyProcessor;
 
 @Component
 public class RouteDSLSample extends RouteBuilder {
@@ -27,20 +26,20 @@ public class RouteDSLSample extends RouteBuilder {
 	public void configure() throws Exception {
 
 			
-		restConfiguration("spark-rest").port(8083).bindingMode(RestBindingMode.json);
+		restConfiguration("spark-rest")
+			.port(8083)
+			.bindingMode(RestBindingMode.json);
 
-		rest("/fuse").consumes("application/json")
-			  					
-		.post("/rhdg")
-			.type(KeyDTO.class)
-			.to("direct:saveKey")
-		.get("/rhdg/{id}")
-			.to("direct:getKey")
-		.delete("/rhdg/{id}")
-			.to("direct:deleteKey");
+		rest("/fuse").consumes("application/json")			  					
+			.post("/rhdg")
+				.type(KeyDTO.class)
+				.to("direct:saveKey")
+			.get("/rhdg/{id}")
+				.to("direct:getKey")
+				.delete("/rhdg/{id}")
+				.to("direct:deleteKey");
 		
-		//Consumers to services
-		
+		//Consumers to services		
 
 		// get a key
 		from("direct:getKey")
@@ -81,7 +80,8 @@ public class RouteDSLSample extends RouteBuilder {
 					}
 
 				}).to("infinispan:{{custom.rhdg.cache.name}}?cacheContainer=#remoteCacheManagerExample")
-				.process(new ResponseSaveKeyProcessor());
+				 .setHeader(Exchange.HTTP_RESPONSE_CODE,constant(204))
+				 .setBody(constant(""));
 				
 		//Remove a key
 		from("direct:deleteKey").routeId("delete-key-route")
@@ -90,8 +90,6 @@ public class RouteDSLSample extends RouteBuilder {
 				.to("infinispan:{{custom.rhdg.cache.name}}?cacheContainer=#remoteCacheManagerExample");
 				
 				
-		
-			
 		
 		/*
 		 * This route verify the number of nodes actives in a cluster every 5 seconds.
