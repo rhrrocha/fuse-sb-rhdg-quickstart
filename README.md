@@ -3,7 +3,7 @@
 The purpose of this project is demonstrate the integration between Jboss Fuse 7 Spring Boot and Red Hat Datagrid.  
 
 ## Requirements
-Before of run this project, ensure that a instance of RHDG is running with a cache configured.
+Before of run this project, ensure that an instance of RHDG is running with a cache configured.
 
 ## Implementations
 ### 1 - PUT a key 
