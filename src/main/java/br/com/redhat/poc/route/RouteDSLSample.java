@@ -44,8 +44,7 @@ public class RouteDSLSample extends RouteBuilder {
 		// get a key
 		from("direct:getKey")
 			.routeId("get-key-route")
-			.setHeader(InfinispanConstants.OPERATION, constant(InfinispanOperation.GET))	
-		
+			.setHeader(InfinispanConstants.OPERATION, constant(InfinispanOperation.GET))			
 			.setHeader(InfinispanConstants.KEY , simple("${in.header.id}"))
 			/*
 			 * The cache name is defined in the application.properties under the key custom.rhdg.cache.name
@@ -59,8 +58,15 @@ public class RouteDSLSample extends RouteBuilder {
 					public void process(Exchange exchange) throws Exception {
 				
 						LOGGER.info("Value of Key " + exchange.getIn().getHeader(InfinispanConstants.KEY) + " is " + exchange.getIn().getBody(String.class));
+					
+						KeyDTO keyDTO = new KeyDTO();
+						keyDTO.setKey(exchange.getIn().getHeader(InfinispanConstants.KEY).toString());
+						keyDTO.setValue(exchange.getIn().getBody(String.class));
 						
+						exchange.getIn().setBody(keyDTO);
+				
 					}
+					
 		 	});
 		
 		//Save a key
