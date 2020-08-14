@@ -6,11 +6,11 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>br.com.redhat.poc.fuse</groupId>
 	<artifactId>fuse-sb-rhdg-quickstart</artifactId>
-	<version>1.2</version>
+	<version>1.3</version>
 	<properties>
 		<project.reporting.outputencoding>UTF-8</project.reporting.outputencoding>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<jboss.fuse.bom.version>7.1.0.fuse-710019-redhat-00002</jboss.fuse.bom.version>
+		<fuse.bom.version>7.5.0.fuse-750029-redhat-00002</fuse.bom.version>
 		<spring.boot.version>1.5.12.RELEASE</spring.boot.version>
 		<maven.compiler.source>1.8</maven.compiler.source>
 		<maven.compiler.target>1.8</maven.compiler.target>
@@ -20,73 +20,98 @@
 			<dependency>
 				<groupId>org.jboss.redhat-fuse</groupId>
 				<artifactId>fuse-springboot-bom</artifactId>
-				<version>${jboss.fuse.bom.version}</version>
+				<version>${fuse.bom.version}</version>
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
 	<dependencies>
+
+		<!-- Enabling health checks -->
 		<dependency>
-			<groupId>org.apache.camel</groupId>
-			<artifactId>camel-core</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.camel</groupId>
-			<artifactId>camel-spring</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.camel</groupId>
-			<artifactId>camel-jackson</artifactId>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-actuator</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
 			<exclusions>
 				<exclusion>
-					<artifactId>spring-boot-starter-tomcat</artifactId>
 					<groupId>org.springframework.boot</groupId>
+					<artifactId>spring-boot-starter-tomcat</artifactId>
 				</exclusion>
 			</exclusions>
 		</dependency>
-		
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-undertow</artifactId>
 		</dependency>
-		
+
+		<!-- Camel -->
 		<dependency>
 			<groupId>org.apache.camel</groupId>
-			<artifactId>camel-servlet-starter</artifactId>
+			<artifactId>camel-spring-boot-starter</artifactId>
 		</dependency>
-		
-		<dependency>
-			<groupId>org.apache.camel</groupId>
-			<artifactId>camel-jackson-starter</artifactId>
-		</dependency>
-		
+
 		<dependency>
 			<groupId>org.apache.camel</groupId>
 			<artifactId>camel-spark-rest</artifactId>
 		</dependency>
 
 		<dependency>
-		   <groupId>org.apache.camel</groupId>
-		    <artifactId>camel-infinispan</artifactId>
-		</dependency>    
-    	
+		    <groupId>org.apache.camel</groupId>
+		    <artifactId>camel-jackson</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.camel</groupId>
+			<artifactId>camel-infinispan</artifactId>
+		</dependency>
+
 		<dependency>
 			<groupId>org.apache.camel</groupId>
 			<artifactId>camel-http4</artifactId>
 		</dependency>
-		
+
+		<!-- Spring-Cloud-Kubernetes -->
 		<dependency>
-		  <groupId>org.apache.camel</groupId>
-		  <artifactId>camel-jmx</artifactId>
-		</dependency>		
-		
+			<groupId>io.fabric8</groupId>
+			<artifactId>spring-cloud-kubernetes-core</artifactId>
+		</dependency>
+
+		<!-- Test -->
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.jboss.arquillian.junit</groupId>
+			<artifactId>arquillian-junit-container</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.arquillian.cube</groupId>
+			<artifactId>arquillian-cube-openshift</artifactId>
+			<exclusions>
+				<exclusion>
+					<groupId>org.apache.httpcomponents</groupId>
+					<artifactId>httpclient-osgi</artifactId>
+				</exclusion>
+			</exclusions>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>io.fabric8</groupId>
+			<artifactId>kubernetes-assertions</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+
+
 	</dependencies>
-	
+
 	<repositories>
 		<repository>
 			<releases />
@@ -123,6 +148,7 @@
 			<url>https://maven.repository.redhat.com/earlyaccess/all</url>
 		</pluginRepository>
 	</pluginRepositories>
+
 	<build>
 		<plugins>
 			<plugin>
@@ -141,6 +167,40 @@
 					</execution>
 				</executions>
 			</plugin>
+
+			<!-- <plugin> <groupId>org.jboss.redhat-fuse</groupId> <artifactId>fabric8-maven-plugin</artifactId> 
+				<configuration> <generator> <config> <spring-boot> <fromMode>docker</fromMode> 
+				<from>registry.redhat.io/openjdk/openjdk-8-rhel8:1.1</from> </spring-boot> 
+				</config> </generator> </configuration> <executions> <execution> <id>fabric8</id> 
+				<goals> <goal>resource</goal> <goal>build</goal> </goals> </execution> </executions> 
+				</plugin> -->
+
+
 		</plugins>
 	</build>
+
+
+	<profiles>
+		<profile>
+			<id>openshift</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.jboss.redhat-fuse</groupId>
+						<artifactId>fabric8-maven-plugin</artifactId>
+						<version>${fuse.bom.version}</version>
+						<executions>
+							<execution>
+								<goals>
+									<goal>resource</goal>
+									<goal>build</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
+
 </project>

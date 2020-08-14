@@ -1,0 +1,4 @@
+apiVersion: "v1"
+kind: "ServiceAccount"
+metadata:
+  name: "fuse-sb-rhdg-quickstart-s2i-7"

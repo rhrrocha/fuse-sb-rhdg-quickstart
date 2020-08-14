@@ -1,0 +1,12 @@
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: rest-api
+  namespace: 1-jdg
+spec:
+  path: /
+  to:
+    kind: Service
+    name: fuse-sb-rhdg-quickstart
+  port:
+    targetPort: rest

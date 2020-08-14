@@ -1,6 +1,10 @@
 
+
 # fuse-rhdg-quickstart
 The purpose of this project is demonstrate the integration between Jboss Fuse 7 Spring Boot and Red Hat Datagrid.  
+
+**JBoss Fuse Version:** 7.5.0.fuse-750029-redhat-00002
+**Red Hat Datagrid:** jboss-datagrid-7.3.0 (Infinispan 9)
 
 ## Requirements
 Before of run this project, ensure that an instance of RHDG is running with a cache configured.
@@ -31,9 +35,31 @@ The url is below:
 	
 This API requires basic authentication. Use the username and password configured during RHDG instalation.
 
+# Running
+## For Linux or Windows
+
+    mvn clean spring-boot:run
+
+## For Openshift
+
+   Use this template to create a configMap: 
+    
+    oc create -f configMap.yml 
+    
+    oc policy add-role-to-user view  system:serviceaccount:openshift:fuse-sb-rhdg-quickstart-s2i-7
+To deploy on OpenShift
+
+    mvn clean fabric8:deploy -Popenshift
+   
+
 # References
 
 [Health Check API ](https://access.redhat.com/documentation/en-us/red_hat_data_grid/7.2/html/administration_and_configuration_guide/the_health_check_api)
 
 [List of editable properties of Hot Rod API](https://docs.jboss.org/infinispan/9.4/apidocs/org/infinispan/client/hotrod/configuration/package-summary.html)
+
+
+
+
+
 

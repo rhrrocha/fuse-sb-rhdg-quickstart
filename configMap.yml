@@ -1,0 +1,23 @@
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: fuse-sb-rhdg-quickstart-s2i-7
+data:
+  application.properties: >
+    infinispan.client.hotrod.server_list=datagrid-service:11222
+
+    infinispan.hotrod.host=datagrid-service
+
+    infinispan.hotrod.port=11222
+
+    infinispan.hotrod.username=jujuba
+
+    infinispan.hotrod.password=jujuba
+
+    infinispan.hosrod.trustStoreFileName=/var/run/secrets/kubernetes.io/serviceaccount/service-ca.crt
+
+    custom.rhdg.cache.name=mycache server.port=8080
+
+    custom.rhdg.cache.name=mycache
+    
+    server.port=8080

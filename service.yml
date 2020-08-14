@@ -1,0 +1,22 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: fuse-sb-rhdg-quickstart  
+  labels:
+    app: fuse-sb-rhdg-quickstart
+    group: br.com.redhat.poc.fuse
+    provider: fabric8    
+spec:
+  ports:
+    - name: http
+      protocol: TCP
+      port: 8080
+      targetPort: 8080
+    - name: rest
+      protocol: TCP
+      port: 8083
+      targetPort: 8083
+  selector:
+    app: fuse-sb-rhdg-quickstart
+    group: br.com.redhat.poc.fuse
+    provider: fabric8

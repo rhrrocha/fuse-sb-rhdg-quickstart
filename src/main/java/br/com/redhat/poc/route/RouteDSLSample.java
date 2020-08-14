@@ -117,6 +117,6 @@ public class RouteDSLSample extends RouteBuilder {
             //Transform the JSON response in a java object.
             .unmarshal().json(JsonLibrary.Jackson, CacheHealthModel.class)  
             .log("Number of Nodes ON: ${in.body.numberOfNodes}");
-		
+	
 	}
 }
