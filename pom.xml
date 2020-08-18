@@ -6,7 +6,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>br.com.redhat.poc.fuse</groupId>
 	<artifactId>fuse-sb-rhdg-quickstart</artifactId>
-	<version>1.3</version>
+	<version>1.0</version>
 	<properties>
 		<project.reporting.outputencoding>UTF-8</project.reporting.outputencoding>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

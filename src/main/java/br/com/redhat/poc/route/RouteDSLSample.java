@@ -25,6 +25,10 @@ public class RouteDSLSample extends RouteBuilder {
 	@Override
 	public void configure() throws Exception {
 
+		onException(KeyNotFoundException.class)
+	    .handled(true)
+		 .setHeader(Exchange.HTTP_RESPONSE_CODE,constant(404))
+		 .setBody(constant(""));
 			
 		restConfiguration("spark-rest")
 			.port(8083)
@@ -62,6 +66,12 @@ public class RouteDSLSample extends RouteBuilder {
 						KeyDTO keyDTO = new KeyDTO();
 						keyDTO.setKey(exchange.getIn().getHeader(InfinispanConstants.KEY).toString());
 						keyDTO.setValue(exchange.getIn().getBody(String.class));
+					
+						if (null == keyDTO.getValue()) {
+							
+							throw new KeyNotFoundException();
+						} 
+							
 						
 						exchange.getIn().setBody(keyDTO);
 				
@@ -86,7 +96,7 @@ public class RouteDSLSample extends RouteBuilder {
 					}
 
 				}).to("infinispan:{{custom.rhdg.cache.name}}?cacheContainer=#remoteCacheManagerExample")
-				 .setHeader(Exchange.HTTP_RESPONSE_CODE,constant(204))
+				 .setHeader(Exchange.HTTP_RESPONSE_CODE,constant(201))
 				 .setBody(constant(""));
 				
 		//Remove a key

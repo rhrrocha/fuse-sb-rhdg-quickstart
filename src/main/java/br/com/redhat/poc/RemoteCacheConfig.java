@@ -78,7 +78,7 @@ public class RemoteCacheConfig {
         		
 	    builder.addServer().host(host).port(port);
 	    
-	    if (null != username) {
+	    if (null != username && !username.equalsIgnoreCase("")) {
 		    builder.security()
 			        // Authentication
 			        .authentication().enable()

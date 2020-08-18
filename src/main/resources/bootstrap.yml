@@ -6,4 +6,4 @@ spring:
     kubernetes:
       reload:
         # Enable live reload on ConfigMap change (disabled for Secrets by default)
-        enabled: false
+        enabled: true
